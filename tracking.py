@@ -50,8 +50,22 @@ with mp_hands.Hands(
                     # Call the master function to get all LEAP hand angles
                     leap_angles = kinematics.get_leap_state(hand_landmarks)
                     
-                    # Print the live data payload to the terminal
-                    print(f"Index PIP: {leap_angles['index']['pip']:.2f} | Middle PIP: {leap_angles['middle']['pip']:.2f} |  Ring PIP: {leap_angles['ring']['pip']:.2f} | Thumb PIP: {leap_angles['thumb']['pip']:.2f} ", flush=True)                    
+                    # --- LIVE HUD OVERLAY ---
+                    y_pos = 375 # Starting Y position on the screen
+                    
+                    for finger, joints in leap_angles.items():
+                        # The thumb uses 'base' instead of 'mcp', so we check for both
+                        mcp_val = joints.get('mcp', joints.get('base'))
+                        
+                        # Format the data into a clean string
+                        info = f"{finger.upper()} - ABD: {joints['abd']:.2f} | MCP: {mcp_val:.2f} | PIP: {joints['pip']:.2f} | DIP: {joints['dip']:.2f}"
+                        
+                        # Draw the text on the video frame in yellow
+                        cv2.putText(image, info, (10, y_pos), 
+                                    cv2.FONT_HERSHEY_SIMPLEX, 0.55, (0, 255, 255), 2)
+                        
+                        # Move down 30 pixels for the next finger's row
+                        y_pos += 30
                     # Display confirmation on the screen
                     cv2.putText(image, "Left Hand Locked", (10, 40), 
                                 cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
